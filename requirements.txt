@@ -1,9 +1,9 @@
 streamlit
-openai>=1.0.0
-faiss-cpu==1.7.4
+openai>=1.0
+faiss-cpu
 numpy
 pandas
 scikit-learn
 python-dotenv
-PyMuPDF==1.24.0
 PyPDF2
+PyMuPDF
