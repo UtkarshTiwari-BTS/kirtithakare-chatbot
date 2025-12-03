@@ -1,4 +1,3 @@
-
 import streamlit as st
 from pdf_reader import read_pdf
 from chunker import chunk_text
@@ -11,7 +10,7 @@ from rag_engine import retrieve, ask_llm
 if "history" not in st.session_state:
     st.session_state.history = []
 
-st.title("📘 PDF RAG Chatbot with History")
+st.title(" PDF RAG Chatbot with History")
 
 uploaded_file = st.file_uploader("Upload a PDF", type=["pdf"])
 
@@ -29,8 +28,8 @@ if uploaded_file:
     # -------------- CHAT HISTORY --------------
     st.subheader("Chat History")
     for q, a in st.session_state.history:
-        st.markdown(f"**🧑‍💻 You:** {q}")
-        st.markdown(f"**🤖 Bot:** {a}")
+        st.markdown(f"** You:** {q}")
+        st.markdown(f"** Bot:** {a}")
         st.markdown("---")
 
     # -------------- USER QUESTION --------------
