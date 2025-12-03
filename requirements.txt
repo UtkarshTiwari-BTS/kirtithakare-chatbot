@@ -1,6 +1,9 @@
 streamlit
-PyMuPDF
+openai>=1.0
 faiss-cpu
 numpy
+pandas
 scikit-learn
-azure-ai
+python-dotenv
+PyPDF2
+
