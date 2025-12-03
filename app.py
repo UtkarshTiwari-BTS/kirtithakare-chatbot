@@ -57,16 +57,11 @@ if uploaded_pdf:
 
     # ---------------- Ask Question ----------------
     st.subheader("Ask a question about the PDF")
-    question = st.text_input("Your Question:")
+    query = st.text_input("Your Question:")
 
-    if question:
-        answer = retrieve_and_ask(
-            query=question,
-            chunks=chunks,
-            index=index,
-            vectorizer=vectorizer
-        )
-        st.session_state.history.append((question, answer))
+    if query:
+        answer = retrieve_and_ask(query, chunks, index, vectorizer)
+        st.session_state.history.append((query, answer))
 
         st.subheader(" Answer")
         st.write(answer)
