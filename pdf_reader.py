@@ -1,9 +1,11 @@
-import fitz  # PyMuPDF
+import PyPDF2
 
-def read_pdf(pdf_path):
-    #fitz-library extracts text from PDF pages reliably.
-    doc = fitz.open(pdf_path)
+def read_pdf(path):
     text = ""
-    for page in doc:
-        text += page.get_text()
+    with open(path, "rb") as f:
+        reader = PyPDF2.PdfReader(f)
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
     return text
