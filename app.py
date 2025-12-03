@@ -1,94 +1,72 @@
-"""import streamlit as st
-from pdf_reader import read_pdf
-from chunker import chunk_text
-from vector_store import build_vector_store
-from rag_engine import retrieve, ask_llm
-
-st.title(" PDF RAG Chatbot ")
-
-uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
-
-if uploaded_file:
-    pdf_path = "BajajTravelsInsurance.pdf"
-    with open(pdf_path, "wb") as f:
-        f.write(uploaded_file.read())
-
-    #st.info("Reading PDF...")
-    text = read_pdf(pdf_path)
-
-    #st.info("Chunking text...")
-    chunks = chunk_text(text)
-
-    #st.info("Building TF-IDF + FAISS index...")
-    index, vectorizer, _ = build_vector_store(chunks)
-
-    st.success("PDF processed successfully!")
-
-    question = st.text_input("Ask a question about the PDF")
-
-    if question:
-        #st.info("Retrieving relevant context...")
-        context = retrieve(question, index, vectorizer, chunks)
-
-        #st.info("Querying Azure OpenAI...")
-        answer = ask_llm(question, context)
-
-        st.subheader("Answer:")
-        st.write(answer)
-"""
-
-#Store history
 import streamlit as st
+import azure_client
 from pdf_reader import read_pdf
 from chunker import chunk_text
 from vector_store import build_vector_store
-from rag_engine import retrieve, ask_llm
+from rag_engine import retrieve_and_ask
 
+st.set_page_config(page_title="PDF RAG Chatbot ", layout="wide")
+st.title(" PDF RAG Chatbot (Azure OpenAI)")
 
-# ---------------------------------------------
-# Initialize chat history
-# ---------------------------------------------
+# ---------------- Sidebar ----------------
+st.sidebar.header(" Azure OpenAI Credentials")
+api_key = st.sidebar.text_input("API Key", type="password")
+endpoint = st.sidebar.text_input("Endpoint (e.g. https://YOUR_RESOURCE.openai.azure.com/)")
+deployment = st.sidebar.text_input("Deployment Name (e.g. gpt-4o-mini)")
+
+if not api_key or not endpoint or not deployment:
+    st.sidebar.warning("Please enter Azure API Key, Endpoint, and Deployment Name.")
+    st.stop()
+
+azure_client.init_azure_client(api_key, endpoint, deployment)
+# ---------------- Chat History ----------------
 if "history" not in st.session_state:
     st.session_state.history = []
 
+# ---------------- PDF Upload ----------------
+st.subheader(" Upload PDF")
+uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 
-st.title("PDF RAG Chatbot with History")
-
-uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
-
-if uploaded_file:
+if uploaded_pdf:
     pdf_path = "BajajTravelsInsurance.pdf"
     with open(pdf_path, "wb") as f:
-        f.write(uploaded_file.read())
+        f.write(uploaded_pdf.read())
 
+    st.success("PDF uploaded successfully!")
+
+    # Read PDF
     text = read_pdf(pdf_path)
+
+    # Chunk text
     chunks = chunk_text(text)
-    index, vectorizer, _ = build_vector_store(chunks)
 
-    st.success("PDF processed successfully!")
+    # Build vector store
+    index, vectorizer = build_vector_store(chunks)
 
-    # ---------------------------------------------
-    # Display Chat History
-    # ---------------------------------------------
-    st.subheader("Chat History")
-    for q, a in st.session_state.history:
-        st.markdown(f"**🧑‍💻 You:** {q}")
-        st.markdown(f"**🤖 Bot:** {a}")
-        st.markdown("---")
+    st.success(f"PDF processed. Total chunks: {len(chunks)}")
 
-    # ---------------------------------------------
-    # Ask Question Input
-    # ---------------------------------------------
-    question = st.text_input("Ask a question about the PDF")
+    # ---------------- Chat History Display ----------------
+    st.subheader(" Chat History")
+    if st.session_state.history:
+        for q, a in st.session_state.history:
+            st.markdown(f" You: {q}")
+            st.markdown(f" Bot: {a}")
+            st.write("---")
+    else:
+        st.info("No messages yet.")
+
+    # ---------------- Ask Question ----------------
+    st.subheader("Ask a question about the PDF")
+    question = st.text_input("Your Question:")
 
     if question:
-        context = retrieve(question, index, vectorizer, chunks)
-        answer = ask_llm(question, context)
-
-        # Save Q&A to history
+        answer = retrieve_and_ask(
+            query=question,
+            chunks=chunks,
+            index=index,
+            vectorizer=vectorizer
+        )
         st.session_state.history.append((question, answer))
 
-        # Display Latest Answer
-        st.subheader("Answer:")
+        st.subheader(" Answer")
         st.write(answer)
-
