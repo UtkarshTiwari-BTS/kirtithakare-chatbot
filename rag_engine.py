@@ -11,20 +11,27 @@ def retrieve_and_ask(query, chunks, index, vectorizer, k=3):
         response = azure_client.client.chat.completions.create(
             model=azure_client.deployment_model,  # <-- Use model instead of deployment_id
             temperature=0.2,
-            messages=[
+             messages=[
             {
                 "role": "system",
-                "content": (
+                "content":
+                (
                     "You are a strict RAG assistant.\n"
                     "Answer ONLY using the provided context.\n"
-                    "Do NOT guess."
-                ),
+                    "RULES:\n"
+                    "1. Do NOT use outside knowledge.\n"
+                    "2. Do NOT guess or hallucinate.\n"
+                    "3. If information is missing, say: 'The answer is not available in the provided context.'\n"
+                    "4. Keep answers short, clear, and factual.\n"
+                )
             },
-            {
+             {
                 "role": "user",
                 "content": f"Context:\n{context}\n\nQuestion: {query}"
             }
+
         ]
+
         )
         return response.choices[0].message.content
 
